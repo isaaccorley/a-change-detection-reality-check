@@ -1,6 +1,6 @@
 # A Change Detection Reality Check
 
-Code and experiments for the paper, ["A Change Detection Reality Check"](https://arxiv.org/abs/2402.06994).
+Code and experiments for the paper, ["A Change Detection Reality Check", Isaac Corley, Caleb Robinson, Anthony Ortiz](https://arxiv.org/abs/2402.06994).
 
 ### Summary
 
