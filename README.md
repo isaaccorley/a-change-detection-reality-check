@@ -51,4 +51,11 @@ Coming soon. Will be uploaded to HuggingFace
 
 If this work inspired your change detection research, please consider citing our paper:
 
-TBD
+```
+@article{corley2024change,
+  title={A Change Detection Reality Check},
+  author={Corley, Isaac and Robinson, Caleb and Ortiz, Anthony},
+  journal={arXiv preprint arXiv:2402.06994},
+  year={2024}
+}
+```
