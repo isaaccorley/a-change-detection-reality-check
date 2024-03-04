@@ -4,7 +4,7 @@ Code and experiments for the paper, ["A Change Detection Reality Check", Isaac C
 
 ### News
 
-- Our paper has been accepted to the [ICLR 2024 Machine Learning for Remote Sensing (ML4RS) Workshop](https://ml-for-rs.github.io/iclr2024/) in Vienna, Austria!
+- Our paper has been accepted to the [ICLR 2024 Machine Learning for Remote Sensing (ML4RS) Workshop](https://ml-for-rs.github.io/iclr2024/)!
 
 ### Summary
 
