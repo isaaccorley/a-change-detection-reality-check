@@ -2,6 +2,10 @@
 
 Code and experiments for the paper, ["A Change Detection Reality Check", Isaac Corley, Caleb Robinson, Anthony Ortiz](https://arxiv.org/abs/2402.06994).
 
+### News
+
+- Our paper has been accepted to the [ICLR 2024 Machine Learning for Remote Sensing (ML4RS) Workshop](https://ml-for-rs.github.io/iclr2024/) in Vienna, Austria!
+
 ### Summary
 
 Remote sensing image literature from the past several years has exploded with proposed deep learning architectures that claim to be the latest state-of-the-art on standard change detection benchmark datasets. However, has the field truly made significant progress? In this paper we perform experiments which conclude a simple U-Net segmentation baseline without training tricks or complicated architectural changes is still a top performer for the task of change detection.
