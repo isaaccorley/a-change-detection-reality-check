@@ -4,7 +4,8 @@ Code and experiments for the paper, ["A Change Detection Reality Check", Isaac C
 
 ### News
 
-- Our paper has been accepted to the [ICLR 2024 Machine Learning for Remote Sensing (ML4RS) Workshop](https://ml-for-rs.github.io/iclr2024/)!
+- **Model Checkpoints uploaded to HuggingFace [here](https://huggingface.co/isaaccorley/a-change-detection-reality-check)! (see below for checkpoints and metrics)**
+- **Our paper has been accepted to the [ICLR 2024 Machine Learning for Remote Sensing (ML4RS) Workshop](https://ml-for-rs.github.io/iclr2024/)!**
 
 ### Summary
 
@@ -23,6 +24,25 @@ We find that U-Net is still a top performer on the LEVIR-CD and WHU-CD benchmark
     <img src="./assets/whucd-results.png" width="500"/><br/>
     <b>Table 2.</b> Experimental results on the WHU-CD dataset. We retrain several state-of-the-art methods using the original dataset’s train/test splits instead of the commonly used randomly split preprocessed version created in (Bandara & Patel (2022a)). We find that these state-of-the-art methods are outperformed by a U-Net baseline. We report the test set precision, recall, F1, and IoU metrics of the positive change class. For each run we select the model checkpoint with the lowest validation set loss. We provide metrics averaged over 10 runs with varying random seed as well as the best seed. Gray rows indicate our baseline U-Net and siamese encoder variants.
 </p>
+
+### Model Checkpoints
+
+#### LEVIR-CD
+
+|    **Model**   	| **Backbone** 	| **Precision** 	| **Recall** 	| **F1** 	| **IoU** 	| **Checkpoint** 	|
+|:--------------:	|:---------------:	|:---------:	|:------:	|:------:	|:------:	|:----------:	|
+|      U-Net     	|    ResNet-50    	|   0.9197  	| 0.8795 	| 0.8991 	| 0.8167 	| [Checkpoint](https://huggingface.co/isaaccorley/a-change-detection-reality-check/resolve/main/levir-cd/unet_resnet50.ckpt) 	|
+|      U-Net     	| EfficientNet-B4 	|   0.9269  	| 0.8588 	| 0.8915 	| 0.8044 	| [Checkpoint](https://huggingface.co/isaaccorley/a-change-detection-reality-check/resolve/main/levir-cd/unet_efficientnetb4.ckpt) 	|
+| U-Net SiamConc 	|    ResNet-50    	|   0.9287  	| 0.8749 	| 0.9010 	| 0.8199 	| [Checkpoint](https://huggingface.co/isaaccorley/a-change-detection-reality-check/resolve/main/levir-cd/unet_siamconc_resnet50.ckpt) 	|
+| U-Net SiamDiff 	|    ResNet-50    	|   0.9321  	| 0.8730 	| 0.9015 	| 0.8207 	| [Checkpoint](https://huggingface.co/isaaccorley/a-change-detection-reality-check/resolve/main/levir-cd/unet_siamdiff_resnet50.ckpt) 	|
+
+#### WHU-CD (using official train/test splits)
+
+|    **Model**   	| **Backbone** 	| **Precision** 	| **Recall** 	| **F1** 	| **IoU** 	| **Checkpoint** 	|
+|:--------------:	|:---------:	|:---------:	|:------:	|:------:	|:------:	|:----------:	|
+| U-Net SiamConc 	| ResNet-50 	|    0.8369 	| 0.8130 	| 0.8217 	| 0.7054 	| [Checkpoint](https://huggingface.co/isaaccorley/a-change-detection-reality-check/resolve/main/whu-cd/unet_siamconc_resnet50.ckpt) 	|
+| U-Net SiamDiff 	| ResNet-50 	|    0.8856 	| 0.7741 	| 0.8248 	| 0.7086 	| [Checkpoint](https://huggingface.co/isaaccorley/a-change-detection-reality-check/resolve/main/whu-cd/unet_siamdiff_resnet50.ckpt) 	|
+|      U-Net     	| ResNet-50 	|    0.8865 	| 0.7663 	| 0.8200 	| 0.7020 	| [Checkpoint](https://huggingface.co/isaaccorley/a-change-detection-reality-check/resolve/main/whu-cd/unet_resnet50.ckpt) 	|
 
 ### Reproducing Results
 
@@ -46,10 +66,6 @@ To evaluate a set of checkpoints and save results to a .csv file run:
 python test_levircd.py --root /path/to/preprocessed-dataset/ --ckpt-root lightning_logs/ --output-filename metrics.csv
 python test_whucd.py --root /path/to/preprocessed-dataset/ --ckpt-root lightning_logs/ --output-filename metrics.csv
 ```
-
-### Model Checkpoints
-
-Coming soon. Will be uploaded to HuggingFace
 
 ### Citation
 
