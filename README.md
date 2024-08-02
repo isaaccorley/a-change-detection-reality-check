@@ -1,11 +1,15 @@
-# A Change Detection Reality Check
+<div align="center">
+<h2>A Change Detection Reality Check</h2>
 
-Code and experiments for the paper, ["A Change Detection Reality Check", Isaac Corley, Caleb Robinson, Anthony Ortiz](https://arxiv.org/abs/2402.06994).
+[**Isaac Corley**](https://isaacc.dev/)<sup>1</sup> · [**Caleb Robinson**](https://www.microsoft.com/en-us/research/people/davrob/)<sup>2</sup> · [**Anthony Ortiz**](https://www.microsoft.com/en-us/research/people/anort/)<sup>2</sup>
 
-### News
+<sup>1</sup>University of Texas at San Antonio&emsp;&emsp;&emsp;&emsp;<sup>2</sup>Microsoft AI for Good Research Lab
 
-- **Model Checkpoints uploaded to HuggingFace [here](https://huggingface.co/isaaccorley/a-change-detection-reality-check)! (see below for checkpoints and metrics)**
-- **Our paper has been accepted to the [ICLR 2024 Machine Learning for Remote Sensing (ML4RS) Workshop](https://ml-for-rs.github.io/iclr2024/)!**
+<a href="https://arxiv.org/abs/2402.06994"><img src='https://img.shields.io/badge/arXiv-A%20Change%20Detection%20Reality%20Check-red' alt='Paper PDF'></a>
+<a href='https://huggingface.co/isaaccorley/a-change-detection-reality-check'><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model%20Checkpoints-yellow'></a>
+</div>
+
+Code and experiments for the paper, ["A Change Detection Reality Check", Isaac Corley, Caleb Robinson, Anthony Ortiz](https://arxiv.org/abs/2402.06994) presented at the [ICLR 2024 Machine Learning for Remote Sensing (ML4RS) Workshop](https://ml-for-rs.github.io/iclr2024/)
 
 ### Summary
 
@@ -26,6 +30,9 @@ We find that U-Net is still a top performer on the LEVIR-CD and WHU-CD benchmark
 </p>
 
 ### Model Checkpoints
+
+**Model Checkpoints uploaded to HuggingFace [here](https://huggingface.co/isaaccorley/a-change-detection-reality-check)!
+
 
 #### LEVIR-CD
 
