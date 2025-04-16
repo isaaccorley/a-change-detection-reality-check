@@ -40,9 +40,7 @@ def get_scheduler(optimizer, args):
         # args.lr_decay_iters
         scheduler = lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=0.1)
     else:
-        return NotImplementedError(
-            "learning rate policy [%s] is not implemented", args.lr_policy
-        )
+        return NotImplementedError("learning rate policy [%s] is not implemented", args.lr_policy)
     return scheduler
 
 
@@ -61,17 +59,13 @@ def get_norm_layer(norm_type="instance"):
     For InstanceNorm, we do not use learnable affine parameters. We do not track running statistics.
     """
     if norm_type == "batch":
-        norm_layer = functools.partial(
-            nn.BatchNorm2d, affine=True, track_running_stats=True
-        )
+        norm_layer = functools.partial(nn.BatchNorm2d, affine=True, track_running_stats=True)
     elif norm_type == "instance":
-        norm_layer = functools.partial(
-            nn.InstanceNorm2d, affine=False, track_running_stats=False
-        )
+        norm_layer = functools.partial(nn.InstanceNorm2d, affine=False, track_running_stats=False)
     elif norm_type == "none":
         norm_layer = lambda x: Identity()
     else:
-        raise NotImplementedError("normalization layer [%s] is not found" % norm_type)
+        raise NotImplementedError(f"normalization layer [{norm_type}] is not found")
     return norm_layer
 
 
@@ -89,9 +83,7 @@ def init_weights(net, init_type="normal", init_gain=0.02):
 
     def init_func(m):  # define the initialization function
         classname = m.__class__.__name__
-        if hasattr(m, "weight") and (
-            classname.find("Conv") != -1 or classname.find("Linear") != -1
-        ):
+        if hasattr(m, "weight") and (classname.find("Conv") != -1 or classname.find("Linear") != -1):
             if init_type == "normal":
                 init.normal_(m.weight.data, 0.0, init_gain)
             elif init_type == "xavier":
@@ -101,9 +93,7 @@ def init_weights(net, init_type="normal", init_gain=0.02):
             elif init_type == "orthogonal":
                 init.orthogonal_(m.weight.data, gain=init_gain)
             else:
-                raise NotImplementedError(
-                    "initialization method [%s] is not implemented" % init_type
-                )
+                raise NotImplementedError(f"initialization method [{init_type}] is not implemented")
             if hasattr(m, "bias") and m.bias is not None:
                 init.constant_(m.bias.data, 0.0)
         elif (
@@ -112,7 +102,7 @@ def init_weights(net, init_type="normal", init_gain=0.02):
             init.normal_(m.weight.data, 1.0, init_gain)
             init.constant_(m.bias.data, 0.0)
 
-    print("initialize network with %s" % init_type)
+    print(f"initialize network with {init_type}")
     net.apply(init_func)  # apply the initialization function <init_func>
 
 
@@ -142,23 +132,11 @@ def define_G(arch, init_type="normal", init_gain=0.02, gpu_ids=[]):
         net = ResNet(input_nc=3, output_nc=2, output_sigmoid=False)
 
     elif arch == "base_transformer_pos_s4":
-        net = BASE_Transformer(
-            input_nc=3,
-            output_nc=2,
-            token_len=4,
-            resnet_stages_num=4,
-            with_pos="learned",
-        )
+        net = BASE_Transformer(input_nc=3, output_nc=2, token_len=4, resnet_stages_num=4, with_pos="learned")
 
     elif arch == "base_transformer_pos_s4_dd8":
         net = BASE_Transformer(
-            input_nc=3,
-            output_nc=2,
-            token_len=4,
-            resnet_stages_num=4,
-            with_pos="learned",
-            enc_depth=1,
-            dec_depth=8,
+            input_nc=3, output_nc=2, token_len=4, resnet_stages_num=4, with_pos="learned", enc_depth=1, dec_depth=8
         )
 
     elif arch == "base_transformer_pos_s4_dd8_dedim8":
@@ -174,7 +152,7 @@ def define_G(arch, init_type="normal", init_gain=0.02, gpu_ids=[]):
         )
 
     else:
-        raise NotImplementedError("Generator model name [%s] is not recognized" % arch)
+        raise NotImplementedError(f"Generator model name [{arch}] is not recognized")
     return init_net(net, init_type, init_gain, gpu_ids)
 
 
@@ -185,32 +163,20 @@ def define_G(arch, init_type="normal", init_gain=0.02, gpu_ids=[]):
 
 class ResNet(torch.nn.Module):
     def __init__(
-        self,
-        input_nc,
-        output_nc,
-        resnet_stages_num=5,
-        backbone="resnet18",
-        output_sigmoid=False,
-        if_upsample_2x=True,
+        self, input_nc, output_nc, resnet_stages_num=5, backbone="resnet18", output_sigmoid=False, if_upsample_2x=True
     ):
         """
         In the constructor we instantiate two nn.Linear modules and assign them as
         member variables.
         """
-        super(ResNet, self).__init__()
+        super().__init__()
         expand = 1
         if backbone == "resnet18":
-            self.resnet = resnet18(
-                pretrained=True, replace_stride_with_dilation=[False, True, True]
-            )
+            self.resnet = resnet18(pretrained=True, replace_stride_with_dilation=[False, True, True])
         elif backbone == "resnet34":
-            self.resnet = resnet34(
-                pretrained=True, replace_stride_with_dilation=[False, True, True]
-            )
+            self.resnet = resnet34(pretrained=True, replace_stride_with_dilation=[False, True, True])
         elif backbone == "resnet50":
-            self.resnet = resnet50(
-                pretrained=True, replace_stride_with_dilation=[False, True, True]
-            )
+            self.resnet = resnet50(pretrained=True, replace_stride_with_dilation=[False, True, True])
             expand = 4
         else:
             raise NotImplementedError
@@ -302,17 +268,11 @@ class BASE_Transformer(ResNet):
         with_decoder_pos=None,
         with_decoder=True,
     ):
-        super(BASE_Transformer, self).__init__(
-            input_nc,
-            output_nc,
-            backbone=backbone,
-            resnet_stages_num=resnet_stages_num,
-            if_upsample_2x=if_upsample_2x,
+        super().__init__(
+            input_nc, output_nc, backbone=backbone, resnet_stages_num=resnet_stages_num, if_upsample_2x=if_upsample_2x
         )
         self.token_len = token_len
-        self.conv_a = nn.Conv2d(
-            32, self.token_len, kernel_size=1, padding=0, bias=False
-        )
+        self.conv_a = nn.Conv2d(32, self.token_len, kernel_size=1, padding=0, bias=False)
         self.tokenizer = tokenizer
         if not self.tokenizer:
             #  if not use tokenzier，then downsample the feature map into a certain size
@@ -331,20 +291,13 @@ class BASE_Transformer(ResNet):
         decoder_pos_size = 256 // 4
         self.with_decoder_pos = with_decoder_pos
         if self.with_decoder_pos == "learned":
-            self.pos_embedding_decoder = nn.Parameter(
-                torch.randn(1, 32, decoder_pos_size, decoder_pos_size)
-            )
+            self.pos_embedding_decoder = nn.Parameter(torch.randn(1, 32, decoder_pos_size, decoder_pos_size))
         self.enc_depth = enc_depth
         self.dec_depth = dec_depth
         self.dim_head = dim_head
         self.decoder_dim_head = decoder_dim_head
         self.transformer = Transformer(
-            dim=dim,
-            depth=self.enc_depth,
-            heads=8,
-            dim_head=self.dim_head,
-            mlp_dim=mlp_dim,
-            dropout=0,
+            dim=dim, depth=self.enc_depth, heads=8, dim_head=self.dim_head, mlp_dim=mlp_dim, dropout=0
         )
         self.transformer_decoder = TransformerDecoder(
             dim=dim,

@@ -1,15 +1,3 @@
-torchgeo
-kornia
-lightning
-pandas
-tqdm
-numpy
-matplotlib
-pillow
-torch
-segmentation_models_pytorch
-torchmetrics
-torchvision
+torchgeo[all]==0.6.0
 image_bbox_slicer
 einops
-timm

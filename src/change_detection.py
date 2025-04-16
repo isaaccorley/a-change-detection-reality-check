@@ -5,7 +5,7 @@
 
 import os
 import warnings
-from typing import Any, List, Optional, Union
+from typing import Any
 
 import matplotlib.pyplot as plt
 import segmentation_models_pytorch as smp
@@ -18,8 +18,7 @@ from torchgeo.models import FCSiamConc, FCSiamDiff, get_weight
 from torchgeo.trainers import utils
 from torchgeo.trainers.base import BaseTask
 from torchmetrics import MetricCollection
-from torchmetrics.classification import (Accuracy, FBetaScore, JaccardIndex,
-                                         Precision, Recall)
+from torchmetrics.classification import Accuracy, FBetaScore, JaccardIndex, Precision, Recall
 from torchmetrics.wrappers import ClasswiseWrapper
 from torchvision.models._api import WeightsEnum
 
@@ -33,23 +32,20 @@ class ChangeDetectionTask(BaseTask):
         self,
         model: str = "unet",
         backbone: str = "resnet50",
-        weights: Optional[Union[WeightsEnum, str, bool]] = None,
+        weights: WeightsEnum | str | bool | None = None,
         in_channels: int = 3,
         num_classes: int = 2,
-        class_weights: Optional[Tensor] = None,
-        labels: Optional[List[str]] = None,
+        class_weights: Tensor | None = None,
+        labels: list[str] | None = None,
         loss: str = "ce",
-        ignore_index: Optional[int] = None,
+        ignore_index: int | None = None,
         lr: float = 1e-3,
         patience: int = 10,
         freeze_backbone: bool = False,
         freeze_decoder: bool = False,
     ) -> None:
         if ignore_index is not None and loss == "jaccard":
-            warnings.warn(
-                "ignore_index has no effect on training when loss='jaccard'",
-                UserWarning,
-            )
+            warnings.warn("ignore_index has no effect on training when loss='jaccard'", UserWarning, stacklevel=2)
 
         self.weights = weights
         super().__init__(ignore="weights")
@@ -63,111 +59,60 @@ class ChangeDetectionTask(BaseTask):
         ignore_index = self.hparams["ignore_index"]
         if loss == "ce":
             ignore_value = -1000 if ignore_index is None else ignore_index
-            self.criterion = nn.CrossEntropyLoss(
-                ignore_index=ignore_value, weight=self.hparams["class_weights"]
-            )
+            self.criterion = nn.CrossEntropyLoss(ignore_index=ignore_value, weight=self.hparams["class_weights"])
         elif loss == "jaccard":
-            self.criterion = smp.losses.JaccardLoss(
-                mode="multiclass", classes=self.hparams["num_classes"]
-            )
+            self.criterion = smp.losses.JaccardLoss(mode="multiclass", classes=self.hparams["num_classes"])
         elif loss == "focal":
-            self.criterion = smp.losses.FocalLoss(
-                "multiclass", ignore_index=ignore_index, normalized=True
-            )
+            self.criterion = smp.losses.FocalLoss("multiclass", ignore_index=ignore_index, normalized=True)
         else:
-            raise ValueError(
-                f"Loss type '{loss}' is not valid. "
-                "Currently, supports 'ce', 'jaccard' or 'focal' loss."
-            )
+            raise ValueError(f"Loss type '{loss}' is not valid. Currently, supports 'ce', 'jaccard' or 'focal' loss.")
 
     def configure_metrics(self) -> None:
         """Initialize the performance metrics."""
         num_classes: int = self.hparams["num_classes"]
-        ignore_index: Optional[int] = self.hparams["ignore_index"]
-        labels: Optional[List[str]] = self.hparams["labels"]
+        ignore_index: int | None = self.hparams["ignore_index"]
+        labels: list[str] | None = self.hparams["labels"]
 
         self.train_metrics = MetricCollection(
             {
                 "OverallAccuracy": Accuracy(
-                    task="multiclass",
-                    num_classes=num_classes,
-                    average="micro",
-                    multidim_average="global",
+                    task="multiclass", num_classes=num_classes, average="micro", multidim_average="global"
                 ),
                 "OverallF1Score": FBetaScore(
-                    task="multiclass",
-                    num_classes=num_classes,
-                    beta=1.0,
-                    average="micro",
-                    multidim_average="global",
+                    task="multiclass", num_classes=num_classes, beta=1.0, average="micro", multidim_average="global"
                 ),
                 "OverallIoU": JaccardIndex(
-                    task="multiclass",
-                    num_classes=num_classes,
-                    ignore_index=ignore_index,
-                    average="micro",
+                    task="multiclass", num_classes=num_classes, ignore_index=ignore_index, average="micro"
                 ),
                 "AverageAccuracy": Accuracy(
-                    task="multiclass",
-                    num_classes=num_classes,
-                    average="macro",
-                    multidim_average="global",
+                    task="multiclass", num_classes=num_classes, average="macro", multidim_average="global"
                 ),
                 "AverageF1Score": FBetaScore(
-                    task="multiclass",
-                    num_classes=num_classes,
-                    beta=1.0,
-                    average="macro",
-                    multidim_average="global",
+                    task="multiclass", num_classes=num_classes, beta=1.0, average="macro", multidim_average="global"
                 ),
                 "AverageIoU": JaccardIndex(
-                    task="multiclass",
-                    num_classes=num_classes,
-                    ignore_index=ignore_index,
-                    average="macro",
+                    task="multiclass", num_classes=num_classes, ignore_index=ignore_index, average="macro"
                 ),
                 "Accuracy": ClasswiseWrapper(
-                    Accuracy(
-                        task="multiclass",
-                        num_classes=num_classes,
-                        average="none",
-                        multidim_average="global",
-                    ),
+                    Accuracy(task="multiclass", num_classes=num_classes, average="none", multidim_average="global"),
                     labels=labels,
                 ),
                 "Precision": ClasswiseWrapper(
-                    Precision(
-                        task="multiclass",
-                        num_classes=num_classes,
-                        average="none",
-                        multidim_average="global",
-                    ),
+                    Precision(task="multiclass", num_classes=num_classes, average="none", multidim_average="global"),
                     labels=labels,
                 ),
                 "Recall": ClasswiseWrapper(
-                    Recall(
-                        task="multiclass",
-                        num_classes=num_classes,
-                        average="none",
-                        multidim_average="global",
-                    ),
+                    Recall(task="multiclass", num_classes=num_classes, average="none", multidim_average="global"),
                     labels=labels,
                 ),
                 "F1Score": ClasswiseWrapper(
                     FBetaScore(
-                        task="multiclass",
-                        num_classes=num_classes,
-                        beta=1.0,
-                        average="none",
-                        multidim_average="global",
+                        task="multiclass", num_classes=num_classes, beta=1.0, average="none", multidim_average="global"
                     ),
                     labels=labels,
                 ),
                 "IoU": ClasswiseWrapper(
-                    JaccardIndex(
-                        task="multiclass", num_classes=num_classes, average="none"
-                    ),
-                    labels=labels,
+                    JaccardIndex(task="multiclass", num_classes=num_classes, average="none"), labels=labels
                 ),
             },
             prefix="train_",
@@ -180,17 +125,10 @@ class ChangeDetectionTask(BaseTask):
             lr_l = 1.0 - epoch / float(self.trainer.max_epochs + 1)
             return lr_l
 
-        optimizer = torch.optim.SGD(
-            self.parameters(), lr=self.hparams["lr"], momentum=0.9, weight_decay=5e-4
-        )
-        scheduler = scheduler = torch.optim.lr_scheduler.LambdaLR(
-            optimizer, lr_lambda=lambda_rule
-        )
+        optimizer = torch.optim.SGD(self.parameters(), lr=self.hparams["lr"], momentum=0.9, weight_decay=5e-4)
+        scheduler = scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda_rule)
 
-        return {
-            "optimizer": optimizer,
-            "lr_scheduler": {"scheduler": scheduler, "monitor": "val_loss"},
-        }
+        return {"optimizer": optimizer, "lr_scheduler": {"scheduler": scheduler, "monitor": "val_loss"}}
 
     def configure_models(self) -> None:
         """Initialize the model.
@@ -212,12 +150,14 @@ class ChangeDetectionTask(BaseTask):
             )
         elif model == "fcsiamdiff":
             self.model = FCSiamDiff(
+                encoder_name=backbone,
                 in_channels=in_channels,
                 classes=num_classes,
                 encoder_weights="imagenet" if weights is True else None,
             )
         elif model == "fcsiamconc":
             self.model = FCSiamConc(
+                encoder_name=backbone,
                 in_channels=in_channels,
                 classes=num_classes,
                 encoder_weights="imagenet" if weights is True else None,
@@ -226,17 +166,11 @@ class ChangeDetectionTask(BaseTask):
             self.model = BIT(arch="base_transformer_pos_s4_dd8")
         elif model == "changeformer":
             self.model = ChangeFormerV6(
-                input_nc=in_channels,
-                output_nc=num_classes,
-                decoder_softmax=False,
-                embed_dim=256,
+                input_nc=in_channels, output_nc=num_classes, decoder_softmax=False, embed_dim=256
             )
         elif model == "tinycd":
             self.model = TinyCD(
-                bkbn_name="efficientnet_b4",
-                pretrained=True,
-                output_layer_bkbn="3",
-                freeze_backbone=False,
+                bkbn_name="efficientnet_b4", pretrained=True, output_layer_bkbn="3", freeze_backbone=False
             )
         else:
             raise ValueError(f"Model type '{model}' is not valid.")
@@ -308,9 +242,7 @@ class ChangeDetectionTask(BaseTask):
         y_hat_hard = y_hat.argmax(dim=1)
 
         self.val_metrics(y_hat_hard, y)
-        self.log_dict(
-            {f"{k}": v for k, v in self.val_metrics.compute().items()}, on_epoch=True
-        )
+        self.log_dict({f"{k}": v for k, v in self.val_metrics.compute().items()}, on_epoch=True)
 
         if (
             batch_idx < 10
@@ -326,7 +258,7 @@ class ChangeDetectionTask(BaseTask):
                 batch[key] = batch[key].cpu()
             sample = unbind_samples(batch)[0]
 
-            fig: Optional[Figure] = None
+            fig: Figure | None = None
             try:
                 fig = datamodule.plot(sample)
             except RGBBandsMissingError:
@@ -334,9 +266,7 @@ class ChangeDetectionTask(BaseTask):
 
             if fig:
                 summary_writer = self.logger.experiment
-                summary_writer.add_figure(
-                    f"image/{batch_idx}", fig, global_step=self.global_step
-                )
+                summary_writer.add_figure(f"image/{batch_idx}", fig, global_step=self.global_step)
                 plt.close()
 
     def test_step(self, batch: Any, batch_idx: int) -> None:
@@ -361,6 +291,4 @@ class ChangeDetectionTask(BaseTask):
         y_hat_hard = y_hat.argmax(dim=1)
 
         self.test_metrics(y_hat_hard, y)
-        self.log_dict(
-            {f"{k}": v for k, v in self.test_metrics.compute().items()}, on_epoch=True
-        )
+        self.log_dict({f"{k}": v for k, v in self.test_metrics.compute().items()}, on_epoch=True)

@@ -2,7 +2,6 @@ import argparse
 
 import lightning
 from lightning.pytorch.callbacks import ModelCheckpoint
-
 from src.change_detection import ChangeDetectionTask
 from src.datasets.whucd import WHUCDDataModule
 
@@ -11,20 +10,10 @@ def main(args):
     for seed in range(args.num_seeds):
         lightning.seed_everything(seed)
         datamodule = WHUCDDataModule(
-            val_split_pct=0.1,
-            root=args.root,
-            batch_size=args.batch_size,
-            patch_size=256,
-            num_workers=args.workers,
+            val_split_pct=0.1, root=args.root, batch_size=args.batch_size, patch_size=256, num_workers=args.workers
         )
         module = ChangeDetectionTask(
-            model=args.model,
-            backbone=args.backbone,
-            weights=True,
-            in_channels=3,
-            num_classes=2,
-            loss="ce",
-            lr=args.lr,
+            model=args.model, backbone=args.backbone, weights=True, in_channels=3, num_classes=2, loss="ce", lr=args.lr
         )
 
         callbacks = ModelCheckpoint(monitor="val_loss", save_last=True, save_top_k=1)
@@ -44,9 +33,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--root", type=str, default="/workspace/storage/data/whucd-chipped"
-    )
+    parser.add_argument("--root", type=str, default="/workspace/storage/data/whucd-chipped")
     parser.add_argument(
         "--model",
         type=str,
@@ -54,10 +41,7 @@ if __name__ == "__main__":
         choices=["unet", "fcsiamconc", "fcsiamdiff", "changeformer", "tinycd", "bit"],
     )
     parser.add_argument(
-        "--backbone",
-        type=str,
-        default="resnet50",
-        help="only works with unet, fcsiamdiff, or fcsiamconc",
+        "--backbone", type=str, default="resnet50", help="only works with unet, fcsiamdiff, or fcsiamconc"
     )
     parser.add_argument("--epochs", type=int, default=200)
     parser.add_argument("--batch-size", type=int, default=8)

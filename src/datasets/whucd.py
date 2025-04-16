@@ -1,6 +1,7 @@
 import glob
 import os
-from typing import Callable, Optional
+from collections.abc import Callable
+from typing import Optional
 
 import kornia.augmentation as K
 import matplotlib.pyplot as plt
@@ -24,7 +25,7 @@ class WHUCD(torch.utils.data.Dataset):
         self,
         root: str = "data",
         split: str = "train",
-        transforms: Optional[Callable[[dict[str, Tensor]], dict[str, Tensor]]] = None,
+        transforms: Callable[[dict[str, Tensor]], dict[str, Tensor]] | None = None,
     ) -> None:
         assert split in self.splits
 
@@ -66,12 +67,7 @@ class WHUCD(torch.utils.data.Dataset):
             tensor = tensor.to(torch.long)
             return tensor
 
-    def plot(
-        self,
-        sample: dict[str, Tensor],
-        show_titles: bool = True,
-        suptitle: Optional[str] = None,
-    ) -> Figure:
+    def plot(self, sample: dict[str, Tensor], show_titles: bool = True, suptitle: str | None = None) -> Figure:
         ncols = 3
 
         image1 = sample["image1"].permute(1, 2, 0).numpy()
@@ -114,15 +110,13 @@ class WHUCD(torch.utils.data.Dataset):
         masks = sorted(glob.glob(os.path.join(root, "change_label", split, "*.tif")))
 
         files = []
-        for image1, image2, mask in zip(images1, images2, masks):
+        for image1, image2, mask in zip(images1, images2, masks, strict=False):
             files.append(dict(image1=image1, image2=image2, mask=mask))
         return files
 
 
 class WHUCDDataModule(NonGeoDataModule):
-    def __init__(
-        self, patch_size: int = 256, val_split_pct: float = 0.1, *args, **kwargs
-    ):
+    def __init__(self, patch_size: int = 256, val_split_pct: float = 0.1, *args, **kwargs):
         super().__init__(WHUCD, *args, **kwargs)
 
         self.patch_size = (patch_size, patch_size)
@@ -131,9 +125,7 @@ class WHUCDDataModule(NonGeoDataModule):
         self.train_aug = AugmentationSequential(
             K.RandomHorizontalFlip(p=0.5),
             K.RandomVerticalFlip(p=0.5),
-            K.RandomResizedCrop(
-                size=self.patch_size, scale=(0.8, 1.0), ratio=(1, 1), p=1.0
-            ),
+            K.RandomResizedCrop(size=self.patch_size, scale=(0.8, 1.0), ratio=(1, 1), p=1.0),
             K.Normalize(mean=0.0, std=255.0),
             K.Normalize(mean=0.5, std=0.5),
             data_keys=["image1", "image2", "mask"],
@@ -156,8 +148,6 @@ class WHUCDDataModule(NonGeoDataModule):
     def setup(self, stage: str) -> None:
         if stage in ["fit", "validate"]:
             self.dataset = WHUCD(split="train", **self.kwargs)
-            self.train_dataset, self.val_dataset = dataset_split(
-                self.dataset, val_pct=self.val_split_pct
-            )
+            self.train_dataset, self.val_dataset = dataset_split(self.dataset, val_pct=self.val_split_pct)
         if stage == "test":
             self.test_dataset = WHUCD(split="test", **self.kwargs)
