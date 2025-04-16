@@ -4,10 +4,9 @@ import os
 
 import lightning
 import pandas as pd
-from tqdm import tqdm
-
 from src.change_detection import ChangeDetectionTask
 from src.datasets.levircd import LEVIRCDDataModule
+from tqdm import tqdm
 
 
 def main(args):
@@ -16,19 +15,13 @@ def main(args):
     runs = [ckpt.split(os.sep)[-3] for ckpt in checkpoints]
 
     metrics = {}
-    for run, ckpt in tqdm(zip(runs, checkpoints), total=len(runs)):
+    for run, ckpt in tqdm(zip(runs, checkpoints, strict=False), total=len(runs)):
         datamodule = LEVIRCDDataModule(
-            root=args.root,
-            batch_size=args.batch_size,
-            patch_size=256,
-            num_workers=args.workers,
+            root=args.root, batch_size=args.batch_size, patch_size=256, num_workers=args.workers
         )
         module = ChangeDetectionTask.load_from_checkpoint(ckpt, map_location="cpu")
         trainer = lightning.Trainer(
-            accelerator=args.accelerator,
-            devices=[args.device],
-            logger=False,
-            precision="16-mixed",
+            accelerator=args.accelerator, devices=[args.device], logger=False, precision="16-mixed"
         )
         metrics[run] = trainer.test(model=module, datamodule=datamodule)[0]
         metrics[run]["model"] = module.hparams.model
@@ -39,7 +32,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root", type=str, default="/workspace/storage/data/levircd")
+    parser.add_argument("--root", type=str, default="./data/levircd")
     parser.add_argument("--ckpt-root", type=str, default="lightning_logs")
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--workers", type=int, default=16)

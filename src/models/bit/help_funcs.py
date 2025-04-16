@@ -8,22 +8,11 @@ class TwoLayerConv2d(nn.Sequential):
     def __init__(self, in_channels, out_channels, kernel_size=3):
         super().__init__(
             nn.Conv2d(
-                in_channels,
-                in_channels,
-                kernel_size=kernel_size,
-                padding=kernel_size // 2,
-                stride=1,
-                bias=False,
+                in_channels, in_channels, kernel_size=kernel_size, padding=kernel_size // 2, stride=1, bias=False
             ),
             nn.BatchNorm2d(in_channels),
             nn.ReLU(),
-            nn.Conv2d(
-                in_channels,
-                out_channels,
-                kernel_size=kernel_size,
-                padding=kernel_size // 2,
-                stride=1,
-            ),
+            nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2, stride=1),
         )
 
 
@@ -69,11 +58,7 @@ class FeedForward(nn.Module):
     def __init__(self, dim, hidden_dim, dropout=0.0):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Linear(dim, hidden_dim),
-            nn.GELU(),
-            nn.Dropout(dropout),
-            nn.Linear(hidden_dim, dim),
-            nn.Dropout(dropout),
+            nn.Linear(dim, hidden_dim), nn.GELU(), nn.Dropout(dropout), nn.Linear(hidden_dim, dim), nn.Dropout(dropout)
         )
 
     def forward(self, x):
@@ -95,7 +80,7 @@ class Cross_Attention(nn.Module):
         self.to_out = nn.Sequential(nn.Linear(inner_dim, dim), nn.Dropout(dropout))
 
     def forward(self, x, m, mask=None):
-        b, n, _, h = *x.shape, self.heads
+        _b, _n, _, h = *x.shape, self.heads
         q = self.to_q(x)
         k = self.to_k(m)
         v = self.to_v(m)
@@ -138,7 +123,7 @@ class Attention(nn.Module):
         self.to_out = nn.Sequential(nn.Linear(inner_dim, dim), nn.Dropout(dropout))
 
     def forward(self, x, mask=None):
-        b, n, _, h = *x.shape, self.heads
+        _b, _n, _, h = *x.shape, self.heads
         qkv = self.to_qkv(x).chunk(3, dim=-1)
         q, k, v = map(lambda t: rearrange(t, "b n (h d) -> b h n d", h=h), qkv)
 
@@ -168,17 +153,8 @@ class Transformer(nn.Module):
             self.layers.append(
                 nn.ModuleList(
                     [
-                        Residual(
-                            PreNorm(
-                                dim,
-                                Attention(
-                                    dim, heads=heads, dim_head=dim_head, dropout=dropout
-                                ),
-                            )
-                        ),
-                        Residual(
-                            PreNorm(dim, FeedForward(dim, mlp_dim, dropout=dropout))
-                        ),
+                        Residual(PreNorm(dim, Attention(dim, heads=heads, dim_head=dim_head, dropout=dropout))),
+                        Residual(PreNorm(dim, FeedForward(dim, mlp_dim, dropout=dropout))),
                     ]
                 )
             )
@@ -201,18 +177,10 @@ class TransformerDecoder(nn.Module):
                         Residual2(
                             PreNorm2(
                                 dim,
-                                Cross_Attention(
-                                    dim,
-                                    heads=heads,
-                                    dim_head=dim_head,
-                                    dropout=dropout,
-                                    softmax=softmax,
-                                ),
+                                Cross_Attention(dim, heads=heads, dim_head=dim_head, dropout=dropout, softmax=softmax),
                             )
                         ),
-                        Residual(
-                            PreNorm(dim, FeedForward(dim, mlp_dim, dropout=dropout))
-                        ),
+                        Residual(PreNorm(dim, FeedForward(dim, mlp_dim, dropout=dropout))),
                     ]
                 )
             )

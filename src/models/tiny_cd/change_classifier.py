@@ -1,27 +1,16 @@
-from typing import List
-
 import torchvision
 from torch import Tensor
 from torch.nn import Identity, Module, ModuleList
 
-from .layers import (MixingBlock, MixingMaskAttentionBlock, PixelwiseLinear,
-                     UpMask)
+from .layers import MixingBlock, MixingMaskAttentionBlock, PixelwiseLinear, UpMask
 
 
 class TinyCD(Module):
-    def __init__(
-        self,
-        bkbn_name="efficientnet_b4",
-        pretrained=True,
-        output_layer_bkbn="3",
-        freeze_backbone=False,
-    ):
+    def __init__(self, bkbn_name="efficientnet_b4", pretrained=True, output_layer_bkbn="3", freeze_backbone=False):
         super().__init__()
 
         # Load the pretrained backbone according to parameters:
-        self._backbone = _get_backbone(
-            bkbn_name, pretrained, output_layer_bkbn, freeze_backbone
-        )
+        self._backbone = _get_backbone(bkbn_name, pretrained, output_layer_bkbn, freeze_backbone)
 
         # Initialize mixing blocks:
         self._first_mix = MixingMaskAttentionBlock(6, 3, [3, 10, 5], [10, 5, 1])
@@ -34,13 +23,7 @@ class TinyCD(Module):
         )
 
         # Initialize Upsampling blocks:
-        self._up = ModuleList(
-            [
-                UpMask(2, 56, 64),
-                UpMask(2, 64, 64),
-                UpMask(2, 64, 32),
-            ]
-        )
+        self._up = ModuleList([UpMask(2, 56, 64), UpMask(2, 64, 64), UpMask(2, 64, 32)])
 
         # Final classification layer:
         self._classify = PixelwiseLinear([32, 16, 8], [16, 8, 2], Identity())
@@ -50,7 +33,7 @@ class TinyCD(Module):
         latents = self._decode(features)
         return self._classify(latents)
 
-    def _encode(self, ref, test) -> List[Tensor]:
+    def _encode(self, ref, test) -> list[Tensor]:
         features = [self._first_mix(ref, test)]
         for num, layer in enumerate(self._backbone):
             ref, test = layer(ref), layer(test)
@@ -65,13 +48,9 @@ class TinyCD(Module):
         return upping
 
 
-def _get_backbone(
-    bkbn_name, pretrained, output_layer_bkbn, freeze_backbone
-) -> ModuleList:
+def _get_backbone(bkbn_name, pretrained, output_layer_bkbn, freeze_backbone) -> ModuleList:
     # The whole model:
-    entire_model = getattr(torchvision.models, bkbn_name)(
-        pretrained=pretrained
-    ).features
+    entire_model = getattr(torchvision.models, bkbn_name)(pretrained=pretrained).features
 
     # Slicing it:
     derived_model = ModuleList([])

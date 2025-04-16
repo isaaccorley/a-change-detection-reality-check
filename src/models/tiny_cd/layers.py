@@ -1,17 +1,9 @@
-from typing import List, Optional
-
 from torch import Tensor, reshape, stack
-from torch.nn import (Conv2d, InstanceNorm2d, Module, PReLU, Sequential,
-                      Upsample)
+from torch.nn import Conv2d, InstanceNorm2d, Module, PReLU, Sequential, Upsample
 
 
 class PixelwiseLinear(Module):
-    def __init__(
-        self,
-        fin: List[int],
-        fout: List[int],
-        last_activation: Module = None,
-    ) -> None:
+    def __init__(self, fin: list[int], fout: list[int], last_activation: Module = None) -> None:
         assert len(fout) == len(fin)
         super().__init__()
 
@@ -20,9 +12,7 @@ class PixelwiseLinear(Module):
             *[
                 Sequential(
                     Conv2d(fin[i], fout[i], kernel_size=1, bias=True),
-                    PReLU()
-                    if i < n - 1 or last_activation is None
-                    else last_activation,
+                    PReLU() if i < n - 1 or last_activation is None else last_activation,
                 )
                 for i in range(n)
             ]
@@ -34,17 +24,9 @@ class PixelwiseLinear(Module):
 
 
 class MixingBlock(Module):
-    def __init__(
-        self,
-        ch_in: int,
-        ch_out: int,
-    ):
+    def __init__(self, ch_in: int, ch_out: int):
         super().__init__()
-        self._convmix = Sequential(
-            Conv2d(ch_in, ch_out, 3, groups=ch_out, padding=1),
-            PReLU(),
-            InstanceNorm2d(ch_out),
-        )
+        self._convmix = Sequential(Conv2d(ch_in, ch_out, 3, groups=ch_out, padding=1), PReLU(), InstanceNorm2d(ch_out))
 
     def forward(self, x: Tensor, y: Tensor) -> Tensor:
         # Packing the tensors and interleaving the channels:
@@ -58,14 +40,7 @@ class MixingBlock(Module):
 class MixingMaskAttentionBlock(Module):
     """use the grouped convolution to make a sort of attention"""
 
-    def __init__(
-        self,
-        ch_in: int,
-        ch_out: int,
-        fin: List[int],
-        fout: List[int],
-        generate_masked: bool = False,
-    ):
+    def __init__(self, ch_in: int, ch_out: int, fin: list[int], fout: list[int], generate_masked: bool = False):
         super().__init__()
         self._mixing = MixingBlock(ch_in, ch_out)
         self._linear = PixelwiseLinear(fin, fout)
@@ -77,24 +52,13 @@ class MixingMaskAttentionBlock(Module):
         z = self._linear(z_mix)
         z_mix_out = 0 if self._mixing_out is None else self._mixing_out(x, y)
 
-        return (
-            z
-            if self._final_normalization is None
-            else self._final_normalization(z_mix_out * z)
-        )
+        return z if self._final_normalization is None else self._final_normalization(z_mix_out * z)
 
 
 class UpMask(Module):
-    def __init__(
-        self,
-        scale_factor: float,
-        nin: int,
-        nout: int,
-    ):
+    def __init__(self, scale_factor: float, nin: int, nout: int):
         super().__init__()
-        self._upsample = Upsample(
-            scale_factor=scale_factor, mode="bilinear", align_corners=True
-        )
+        self._upsample = Upsample(scale_factor=scale_factor, mode="bilinear", align_corners=True)
         self._convolution = Sequential(
             Conv2d(nin, nin, 3, 1, groups=nin, padding=1),
             PReLU(),
@@ -104,7 +68,7 @@ class UpMask(Module):
             InstanceNorm2d(nout),
         )
 
-    def forward(self, x: Tensor, y: Optional[Tensor] = None) -> Tensor:
+    def forward(self, x: Tensor, y: Tensor | None = None) -> Tensor:
         x = self._upsample(x)
         if y is not None:
             x = x * y
